@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Sanções, Multas e Glosas</title>
+<style>
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --text: #192230;
+  --muted: #64748b;
+  --primary: #3157d5;
+  --primary-dark: #2445b5;
+  --border: #dce3ee;
+  --ok: #16794b;
+  --bad: #b42318;
+  --soft: #eef2ff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+.app {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 28px 18px 60px;
+}
+.hero {
+  background: linear-gradient(135deg, #172554, #3157d5);
+  color: white;
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: 0 18px 45px rgba(30, 64, 175, .18);
+}
+.hero h1 { margin: 0 0 8px; font-size: clamp(1.7rem, 4vw, 2.5rem); }
+.hero p { margin: 0; opacity: .9; line-height: 1.55; }
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .15s ease;
+}
+button:hover { transform: translateY(-1px); }
+.primary { background: var(--primary); color: white; }
+.primary:hover { background: var(--primary-dark); }
+.secondary { background: #e9eef8; color: #24324a; }
+.ghost { background: rgba(255,255,255,.14); color: white; border: 1px solid rgba(255,255,255,.25); }
+.stats {
+  margin: 18px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+}
+.stat strong { display:block; font-size: 1.35rem; }
+.stat span { color: var(--muted); font-size:.85rem; }
+.progress-wrap {
+  height: 10px; background: #dfe6f3; border-radius: 999px; overflow: hidden; margin-bottom: 18px;
+}
+.progress { height: 100%; background: var(--primary); width: 0; transition: width .2s; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(15,23,42,.06);
+}
+.meta {
+  display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;
+}
+.badge {
+  display:inline-block; padding:6px 9px; border-radius:999px;
+  background:var(--soft); color:#3546a4; font-size:.8rem; font-weight:750;
+}
+.ref { background:#f1f5f9; color:#475569; }
+.question { font-size: 1.22rem; line-height: 1.45; font-weight: 750; margin: 5px 0 18px; }
+.options { display:grid; gap:10px; }
+.option {
+  width:100%; text-align:left; background:white; color:var(--text);
+  border:1.5px solid var(--border); padding:14px 15px; font-weight:600;
+}
+.option:hover:not(:disabled) { border-color:#8ea5f4; background:#f8faff; }
+.option.selected { border-color: var(--primary); background: #eef2ff; }
+.option.correct { border-color: #39a875; background: #ecfdf3; color:#11613e; }
+.option.wrong { border-color: #e07a72; background:#fff1f0; color:#9b241b; }
+.option:disabled { cursor: default; transform:none; }
+.feedback {
+  margin-top:18px; padding:15px 16px; border-radius:14px; line-height:1.55; display:none;
+}
+.feedback.ok { display:block; background:#ecfdf3; border:1px solid #b7ebcf; color:#135f3d; }
+.feedback.bad { display:block; background:#fff1f0; border:1px solid #f1c0bb; color:#8f261f; }
+.actions {
+  margin-top:18px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+}
+.result {
+  display:none; text-align:center; background:var(--card); border:1px solid var(--border);
+  border-radius:20px; padding:30px; margin-top:18px;
+}
+.result h2 { font-size:2rem; margin:0 0 8px; }
+.result .big { font-size:3.3rem; font-weight:850; color:var(--primary); margin:12px 0; }
+.mistakes {
+  margin-top:20px; text-align:left; display:grid; gap:12px;
+}
+.mistake {
+  border:1px solid var(--border); border-radius:14px; padding:14px; background:#fafbfe;
+}
+.mistake strong { display:block; margin-bottom:5px; }
+.small { color:var(--muted); font-size:.9rem; line-height:1.5; }
+.footer { color:var(--muted); text-align:center; margin-top:20px; font-size:.85rem; }
+@media (max-width: 650px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .card { padding:18px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="hero">
+    <h1>Quiz: Sanções, Multas e Glosas</h1>
+    <p>40 questões baseadas na planilha de sugestões para o Termo de Referência, com questões complementares do parecer jurídico nos pontos em que ele fundamenta as alterações.</p>
+    <div class="toolbar">
+      <button class="ghost" onclick="shuffleQuiz()">🔀 Embaralhar questões</button>
+      <button class="ghost" onclick="restartQuiz()">↻ Reiniciar</button>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><strong id="position">1/40</strong><span>Questão</span></div>
+    <div class="stat"><strong id="correct">0</strong><span>Acertos</span></div>
+    <div class="stat"><strong id="wrong">0</strong><span>Erros</span></div>
+    <div class="stat"><strong id="percent">0%</strong><span>Aproveitamento</span></div>
+  </section>
+
+  <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+
+  <section class="card" id="quizCard">
+    <div class="meta">
+      <span class="badge" id="category"></span>
+      <span class="badge ref" id="reference"></span>
+      <span class="badge ref" id="source"></span>
+    </div>
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions">
+      <button class="secondary" id="backBtn" onclick="goBack()">← Anterior</button>
+      <button class="primary" id="answerBtn" onclick="submitAnswer()">Responder</button>
+      <button class="primary" id="nextBtn" onclick="goNext()" style="display:none">Próxima →</button>
+    </div>
+  </section>
+
+  <section class="result" id="result">
+    <h2>Resultado final</h2>
+    <div class="big" id="finalScore"></div>
+    <p id="finalMessage"></p>
+    <button class="primary" onclick="restartQuiz()">Fazer novamente</button>
+    <div class="mistakes" id="mistakes"></div>
+  </section>
+
+  <div class="footer">
+    O conteúdo do quiz reproduz a organização e as propostas constantes dos materiais de estudo. Onde planilha e parecer têm enfoques diferentes, a questão identifica a fonte.
+  </div>
+</div>
+
+<script>
+const originalQuestions = [{"id": 1, "category": "Não aliciamento", "reference": "Planilha — item 5.17", "source": "Planilha", "question": "Qual é a avaliação atribuída pela planilha à cláusula de não aliciamento do item 5.17?", "options": ["OK!", "Retirar", "Alterar", "Ajustar texto"], "answer": 2, "explanation": "O item 5.17 está marcado como “Alterar”. A proposição mantém a cláusula, mas acrescenta atualização pelo IPCA e prazo para pagamento."}, {"id": 2, "category": "Não aliciamento", "reference": "Planilha — item 5.17", "source": "Planilha", "question": "Por quanto tempo após o encerramento do contrato permanece a vedação de contratação prevista na cláusula 5.17?", "options": ["12 meses", "24 meses", "36 meses", "60 meses"], "answer": 2, "explanation": "A cláusula prevê a vedação durante a execução do contrato e por 36 meses após o encerramento."}, {"id": 3, "category": "Não aliciamento", "reference": "Planilha — item 5.17", "source": "Planilha", "question": "Qual multa está prevista na cláusula de não aliciamento?", "options": ["2% do valor da contratação", "5% do saldo contratual", "10% do valor da contratação", "20% da Ordem de Serviço"], "answer": 2, "explanation": "O item 5.17 prevê multa de 10% do valor da contratação."}, {"id": 4, "category": "Não aliciamento", "reference": "Planilha — item 5.17", "source": "Planilha", "question": "O que a proposição da Logus acrescenta à multa do item 5.17?", "options": ["Atualização pelo IPCA e pagamento em 10 dias", "Atualização pela Selic e pagamento em 30 dias", "Redução da multa para 5%", "Conversão automática em advertência"], "answer": 0, "explanation": "A proposição determina atualização pelo IPCA, ou índice substituto, e pagamento em 10 dias após a contratação ou comunicação formal da Logus."}, {"id": 5, "category": "Anexo I", "reference": "Planilha — Anexo I, item 1.4.3.1", "source": "Planilha", "question": "Qual é a proposta para a cláusula de não aliciamento que aparece no Anexo I?", "options": ["Mantê-la no Anexo I e retirar do corpo do TR", "Retirá-la do Anexo I e mantê-la somente no corpo do TR", "Duplicá-la em todos os anexos", "Substituí-la por uma cláusula de confidencialidade"], "answer": 1, "explanation": "A planilha marca o item 1.4.3.1 do Anexo I como “Retirar”, para manter a regra somente no corpo do TR."}, {"id": 6, "category": "Ocorrências e glosas", "reference": "Planilha — 10.1, Ocorrência 1", "source": "Planilha", "question": "A Ocorrência 1 do item 10.1 trata de qual situação?", "options": ["Atraso na garantia contratual", "Atraso no atendimento ou solução de incidentes SUP_01 e SUP_02", "Fraude na execução do contrato", "Inexecução total do objeto"], "answer": 1, "explanation": "A Ocorrência 1 refere-se ao atraso no início do atendimento ou na solução de incidentes SUP_01 e SUP_02 na manutenção mensal do SIAFE-AL."}, {"id": 7, "category": "Ocorrências e glosas", "reference": "Planilha — 10.1, Ocorrência 1", "source": "Planilha", "question": "Qual mecanismo é aplicado na Ocorrência 1?", "options": ["FGDS conforme o Anexo II", "Multa fixa de 20% do contrato", "Advertência automática", "Declaração de inidoneidade"], "answer": 0, "explanation": "A sanção indicada é a aplicação do FGDS — Fator de Glosa por Desempenho de Serviço — conforme o Anexo II."}, {"id": 8, "category": "Ocorrências e glosas", "reference": "Planilha — 10.1, Ocorrência 1", "source": "Planilha", "question": "Qual é o limite máximo mensal do FGDS indicado na Ocorrência 1?", "options": ["10% do faturamento", "15% do faturamento", "20% do faturamento", "30% do faturamento"], "answer": 2, "explanation": "A planilha informa limite máximo mensal de 20% do faturamento."}, {"id": 9, "category": "ICCR", "reference": "Planilha — 10.1, Ocorrências 2, 3 e 4", "source": "Planilha", "question": "Qual avaliação foi dada às Ocorrências 2, 3 e 4 relacionadas ao ICCR?", "options": ["OK!", "Alterar", "Retirar", "Ajustar texto"], "answer": 2, "explanation": "As três ocorrências relacionadas ao ICCR estão marcadas como “Retirar”."}, {"id": 10, "category": "ICCR", "reference": "Planilha — 10.1, Ocorrências 2, 3 e 4", "source": "Planilha", "question": "Qual justificativa comum é apresentada para retirar as ocorrências do ICCR?", "options": ["O ICCR deixou de existir", "O Anexo II foi alterado para contemplar o ICCR em sua metodologia", "O contrato não possui manutenção", "O índice foi substituído pelo IPCA"], "answer": 1, "explanation": "O comentário repetido na planilha é que o Anexo II foi alterado para contemplar o ICCR em sua metodologia."}, {"id": 11, "category": "ICCR", "reference": "Planilha — 10.1, Ocorrência 2", "source": "Planilha", "question": "Antes da proposta de retirada, qual glosa estava prevista na Ocorrência 2 para ICCR acima de 5%?", "options": ["Glosa progressiva de 1% a 4% sobre o valor mensal do módulo", "Multa de 20% do contrato", "Glosa de 0,5% por dia sobre a OS", "Retenção integral da fatura"], "answer": 0, "explanation": "A Ocorrência 2 previa glosa progressiva de 1% a 4% sobre o valor mensal do módulo."}, {"id": 12, "category": "Ocorrências e multas", "reference": "Planilha — 10.1, Ocorrência 5", "source": "Planilha", "question": "Qual situação é tratada na Ocorrência 5 do item 10.1?", "options": ["Inexecução total do objeto ou rescisão não motivada pela Administração", "Atraso superior a 60 dias na garantia", "Baixa qualidade medida pelo ICCR", "Uso insuficiente de recursos humanos"], "answer": 0, "explanation": "A Ocorrência 5 trata de inexecução total do objeto ou rescisão contratual não motivada pela Administração."}, {"id": 13, "category": "Ocorrências e multas", "reference": "Planilha — 10.1, Ocorrência 5", "source": "Planilha", "question": "Como a planilha avalia a Ocorrência 5?", "options": ["OK!", "Retirar", "Alterar", "Sem avaliação"], "answer": 0, "explanation": "A Ocorrência 5 está marcada como “OK!” e mantém a multa compensatória de 20% do valor total do contrato."}, {"id": 14, "category": "Ocorrências e multas", "reference": "Planilha — 10.1, Ocorrência 6", "source": "Planilha", "question": "Qual é o principal problema apontado na base de cálculo originalmente usada na Ocorrência 6?", "options": ["O contrato não estabelece valor para subsistema", "A OS não possui prazo", "O ICCR não pode ser medido", "A garantia não foi prevista"], "answer": 0, "explanation": "O comentário indica que não há valor estabelecido para subsistema no âmbito deste contrato."}, {"id": 15, "category": "Ocorrências e multas", "reference": "Planilha — 10.1, Ocorrência 6", "source": "Planilha", "question": "Segundo a proposição registrada na planilha para a Ocorrência 6, qual multa passa a ser indicada para inexecução parcial?", "options": ["2% do saldo contratual", "10% da Ordem de Serviço", "20% do valor total do contrato", "30% do módulo afetado"], "answer": 2, "explanation": "A proposição da planilha para a Ocorrência 6 indica multa compensatória de 20% do valor total do contrato. O quiz reproduz a proposta da planilha, sem corrigi-la ou reconciliá-la com o parecer."}, {"id": 16, "category": "Glosa", "reference": "Planilha — item 10.2", "source": "Planilha", "question": "O item 10.2 prevê retenção ou glosa no pagamento de que forma?", "options": ["Sempre no valor integral da fatura", "Proporcional à irregularidade verificada", "Somente após rescisão", "Exclusivamente sobre a garantia"], "answer": 1, "explanation": "O texto do item 10.2 prevê retenção ou glosa proporcional à irregularidade verificada, sem prejuízo das sanções cabíveis."}, {"id": 17, "category": "Glosa", "reference": "Planilha — itens 10.2.1 e 10.2.2", "source": "Planilha", "question": "Qual das situações abaixo está expressamente contemplada nos itens 10.2.1 e 10.2.2?", "options": ["Não atingir valores mínimos aceitáveis ou usar recursos em qualidade/quantidade inferior à demandada", "Contratar empregado da Contratada", "Atrasar a reposição da garantia por 10 dias", "Praticar exclusivamente ato lesivo da Lei nº 12.846"], "answer": 0, "explanation": "Os subitens tratam do não atingimento dos níveis/resultados e da não utilização, ou utilização insuficiente, dos materiais e recursos humanos exigidos."}, {"id": 18, "category": "Infrações", "reference": "Planilha — item 10.3, alíneas a a d", "source": "Planilha", "question": "Qual das alternativas NÃO aparece entre as alíneas a a d do item 10.3?", "options": ["Inexecução parcial", "Inexecução parcial com grave dano", "Inexecução total", "Contratação de empregado da Contratada"], "answer": 3, "explanation": "As alíneas a a d tratam de inexecução parcial, inexecução parcial com grave dano, inexecução total e retardamento sem motivo justificado."}, {"id": 19, "category": "Infrações", "reference": "Planilha — item 10.3, alíneas e a h", "source": "Planilha", "question": "Qual grupo de condutas aparece nas alíneas e a h do item 10.3?", "options": ["Fraude, falsidade, inidoneidade e ato lesivo", "Somente atrasos de cronograma", "Somente falhas de infraestrutura", "Apenas descumprimentos de níveis de serviço"], "answer": 0, "explanation": "O bloco inclui documentação ou declaração falsa, ato fraudulento, comportamento inidôneo/fraude e ato lesivo da Lei nº 12.846/2013."}, {"id": 20, "category": "Sanções", "reference": "Planilha — item 10.4.1", "source": "Planilha", "question": "Quando a advertência está prevista no item 10.4.1?", "options": ["Sempre que houver fraude", "Na inexecução parcial, quando não se justificar penalidade mais grave", "Somente na inexecução total", "Apenas no atraso da garantia"], "answer": 1, "explanation": "A advertência está associada à inexecução parcial quando não se justificar a imposição de sanção mais grave."}, {"id": 21, "category": "Sanções", "reference": "Planilha — item 10.4.2", "source": "Planilha", "question": "O impedimento de licitar e contratar é relacionado, no item 10.4.2, a quais alíneas do item 10.3?", "options": ["a e h", "b, c e d", "e, f e g", "somente c"], "answer": 1, "explanation": "O item 10.4.2 relaciona o impedimento às condutas das alíneas b, c e d, quando não se justificar penalidade mais grave."}, {"id": 22, "category": "Sanções", "reference": "Planilha — item 10.4.3", "source": "Planilha", "question": "A declaração de inidoneidade é prevista, entre outras hipóteses, para quais alíneas?", "options": ["Somente a e b", "e, f, g e h", "Somente d", "Somente a"], "answer": 1, "explanation": "O item 10.4.3 menciona as alíneas e, f, g e h, além de b, c e d quando justificarem penalidade mais grave."}, {"id": 23, "category": "Multa moratória", "reference": "Planilha — item 10.4.4.1", "source": "Planilha", "question": "Qual é a avaliação da planilha para o item 10.4.4.1, relativo à multa moratória por retardamento?", "options": ["OK!", "Retirar", "Alterar", "Ajustar texto"], "answer": 2, "explanation": "O item 10.4.4.1 está marcado como “Alterar”."}, {"id": 24, "category": "Multa moratória", "reference": "Planilha — item 10.4.4.1", "source": "Planilha", "question": "Qual é a principal razão anotada para alterar o item 10.4.4.1?", "options": ["As metodologias técnicas dos anexos conflitam com o texto", "A Lei proíbe multa moratória", "O contrato não possui Ordens de Serviço", "O Anexo II foi excluído"], "answer": 0, "explanation": "O comentário da planilha diz que existem extensas metodologias técnicas nos anexos que conflitam com o texto."}, {"id": 25, "category": "Multa moratória", "reference": "Planilha — item 10.4.4.1", "source": "Planilha", "question": "Na proposição do item 10.4.4.1, a multa moratória deve incidir sobre qual referência econômica?", "options": ["Valor global do contrato", "Valor da parcela inadimplida segundo a Ordem de Serviço", "Valor de aquisição do subsistema em contrato anterior", "Patrimônio líquido da contratada"], "answer": 1, "explanation": "A proposição remete à parcela inadimplida segundo o Anexo III (Ordem de Serviço), observando também indicadores dos Anexos II e IV."}, {"id": 26, "category": "Garantia", "reference": "Planilha — item 10.4.4.2", "source": "Planilha", "question": "O que a planilha propõe para o item 10.4.4.2, que prevê multa pelo atraso na apresentação, suplementação ou reposição da garantia?", "options": ["Manter", "Aumentar para 10%", "Retirar", "Converter em advertência"], "answer": 2, "explanation": "O item 10.4.4.2 está marcado como “Retirar”. A justificativa registrada é que estaria abrangido pelo item anterior e pelas regras dos anexos."}, {"id": 27, "category": "Garantia", "reference": "Planilha — item 10.4.4.2.1", "source": "Planilha", "question": "Segundo o item 10.4.4.2.1, atraso superior a quantos dias na garantia pode autorizar a extinção do contrato?", "options": ["15 dias", "30 dias", "45 dias", "60 dias"], "answer": 3, "explanation": "O texto prevê que atraso superior a 60 dias na apresentação, suplementação ou reposição da garantia pode autorizar a extinção do contrato."}, {"id": 28, "category": "Multa compensatória", "reference": "Planilha — item 10.4.4.3", "source": "Planilha", "question": "Qual faixa de multa compensatória é indicada no item 10.4.4.3 para atos ilícitos, fraude e corrupção?", "options": ["0,5% a 30%", "1% a 4%", "10% a 20%", "20% a 100%"], "answer": 0, "explanation": "O item 10.4.4.3 prevê multa compensatória de 0,5% a 30% do valor da contratação."}, {"id": 29, "category": "Multa compensatória", "reference": "Planilha — item 10.4.4.4", "source": "Planilha", "question": "Qual multa o item 10.4.4.4 prevê para inexecução total?", "options": ["10% da parcela afetada", "20% do valor total da contratação", "30% do saldo contratual", "0,5% por dia útil"], "answer": 1, "explanation": "O item 10.4.4.4 prevê multa compensatória de 20% do valor total da contratação para inexecução total."}, {"id": 30, "category": "Multa compensatória", "reference": "Planilha — item 10.4.4.5", "source": "Planilha", "question": "Qual mudança a planilha propõe no item 10.4.4.5, sobre inexecução parcial com grave dano?", "options": ["Trocar a base pelo saldo a ser executado ou parcela afetada", "Eliminar qualquer multa", "Fixar 30% do valor total do contrato", "Usar o valor histórico de aquisição do módulo"], "answer": 0, "explanation": "A proposição altera a base para até 10% do saldo a ser executado do contrato ou da parcela afetada. O comentário remete ao parecer jurídico."}, {"id": 31, "category": "Multa compensatória", "reference": "Planilha — item 10.4.4.6", "source": "Planilha", "question": "Qual é a proposta da planilha para o item 10.4.4.6, que previa multa compensatória de 20% da OS em substituição à moratória?", "options": ["Manter", "Retirar", "Aumentar para 30%", "Aplicar somente ao ICCR"], "answer": 1, "explanation": "O item 10.4.4.6 está marcado como “Retirar”, com a observação “Segundo parecer jurídico”."}, {"id": 32, "category": "Subsistemas", "reference": "Planilha — item 10.4.4.7", "source": "Planilha", "question": "Por que a planilha propõe retirar o item 10.4.4.7?", "options": ["Porque não há valor de subsistema estabelecido neste contrato e já há outras sanções para vícios", "Porque subsistemas não fazem parte de contratos de TIC", "Porque toda inexecução parcial deve gerar apenas advertência", "Porque a multa de 10% é sempre proibida"], "answer": 0, "explanation": "O comentário afirma que não há valor estabelecido para subsistema neste contrato e que o TR já prevê sanções adicionais para vícios que causem prejuízo."}, {"id": 33, "category": "Subsistemas", "reference": "Planilha — item 10.4.4.7.1", "source": "Planilha", "question": "Qual justificativa é dada para retirar o item 10.4.4.7.1, que lista subsistemas?", "options": ["O texto está fora de contexto e o detalhamento consta no Anexo II", "Os subsistemas serão vendidos separadamente", "O Anexo II foi revogado", "O módulo BI/Flexvision não existe"], "answer": 0, "explanation": "A planilha registra que o texto está fora de contexto e sem detalhamento, e que o detalhamento consta no Anexo II."}, {"id": 34, "category": "Processo sancionatório", "reference": "Planilha — itens 10.5 a 10.7", "source": "Planilha", "question": "Qual afirmação corresponde aos itens 10.5 a 10.7?", "options": ["A sanção elimina a obrigação de reparar o dano", "A multa impede qualquer outra sanção", "A reparação integral permanece e há prazo de 15 dias úteis para defesa antes da multa", "A defesa só é possível após pagamento integral"], "answer": 2, "explanation": "O item 10.5 preserva a reparação integral do dano; o 10.6 trata da cumulação com multa; e o 10.7 prevê defesa em 15 dias úteis antes da aplicação da multa."}, {"id": 35, "category": "Processo sancionatório", "reference": "Planilha — itens 10.9, 10.9.1 e 10.9.2", "source": "Planilha", "question": "Como as notificações para contraditório e ampla defesa serão enviadas, segundo os itens 10.9.1 e 10.9.2?", "options": ["Somente por carta registrada", "Eletronicamente para os e-mails informados na proposta comercial", "Exclusivamente por publicação em jornal", "Por mensagem para qualquer empregado da empresa"], "answer": 1, "explanation": "A planilha prevê envio eletrônico aos endereços de e-mail informados na proposta comercial, considerados de uso contínuo da empresa."}, {"id": 36, "category": "Dosimetria", "reference": "Planilha — itens 10.10.1 a 10.10.5", "source": "Planilha", "question": "Qual dos fatores abaixo NÃO está listado no item 10.10 para aplicação das sanções?", "options": ["Natureza e gravidade da infração", "Circunstâncias agravantes ou atenuantes", "Danos ao Contratante", "Preferência comercial da Administração por determinado fornecedor"], "answer": 3, "explanation": "O item 10.10 considera gravidade, peculiaridades do caso, agravantes/atenuantes, danos e programa de integridade — não preferência comercial."}, {"id": 37, "category": "Integridade e cadastros", "reference": "Planilha — itens 10.11 a 10.13", "source": "Planilha", "question": "Qual afirmação está de acordo com os itens 10.11 a 10.13?", "options": ["Atos também tipificados na Lei nº 12.846 devem ser apurados em processo totalmente separado", "A personalidade jurídica jamais pode ser desconsiderada", "Sanções devem ser informadas para publicidade no CEIS/CNEP e impedimento/inidoneidade podem ser reabilitados", "Não existe previsão de reabilitação"], "answer": 2, "explanation": "A planilha prevê apuração conjunta quando aplicável, possibilidade de desconsideração da personalidade jurídica, publicidade em CEIS/CNEP e reabilitação das sanções mencionadas."}, {"id": 38, "category": "Compensação de débitos", "reference": "Planilha — item 10.14", "source": "Planilha", "question": "O que o item 10.14 permite em relação a débitos de multa administrativa e/ou indenizações não inscritos em dívida ativa?", "options": ["Somente pagamento em dinheiro", "Compensação total ou parcial com créditos devidos pelo mesmo órgão, nos termos indicados", "Cancelamento automático após 30 dias", "Transferência do débito para outro licitante"], "answer": 1, "explanation": "O item 10.14 admite compensação total ou parcial com créditos decorrentes do mesmo contrato ou de outros contratos com o mesmo órgão, conforme a IN SEGES/ME nº 26/2022."}, {"id": 39, "category": "Parecer jurídico", "reference": "Parecer — cláusula 10.4.4.6", "source": "Parecer jurídico", "question": "Segundo o parecer jurídico, quando a conversão da multa moratória em compensatória se justifica?", "options": ["Em qualquer atraso superior a um dia", "Quando o atraso torna definitivamente inútil a prestação para o interesse público, mediante demonstração", "Sempre que houver uma OS aberta", "Somente quando o ICCR superar 5%"], "answer": 1, "explanation": "O parecer afirma que a conversão é excepcional: exige que o atraso torne definitivamente inútil a prestação para o interesse público e que isso seja demonstrado pela Administração."}, {"id": 40, "category": "Parecer jurídico", "reference": "Parecer — cláusula 10.4.4.7 e conclusão", "source": "Parecer jurídico", "question": "Qual parâmetro econômico o parecer considera mais aderente para multa relacionada a obrigação ou módulo afetado?", "options": ["Sempre o valor global do contrato", "O valor histórico de aquisição do módulo em outro contrato", "O valor da manutenção, da OS, da medição/parcela afetada ou, em rescisão, o saldo contratual remanescente", "O faturamento anual da contratada"], "answer": 2, "explanation": "O parecer recomenda vincular a penalidade à obrigação efetivamente inadimplida: manutenção, OS, medição/parcela afetada e, em hipóteses de inexecução definitiva ou rescisão, saldo contratual remanescente."}];
+let questions = [...originalQuestions];
+let current = 0;
+let answers = Array(questions.length).fill(null);
+let graded = Array(questions.length).fill(false);
+let score = 0;
+let errors = 0;
+
+function render() {
+  const q = questions[current];
+  document.getElementById("position").textContent = `${current + 1}/${questions.length}`;
+  document.getElementById("category").textContent = q.category;
+  document.getElementById("reference").textContent = q.reference;
+  document.getElementById("source").textContent = q.source;
+  document.getElementById("question").textContent = q.question;
+  document.getElementById("progress").style.width = `${((current + 1) / questions.length) * 100}%`;
+  updateStats();
+
+  const options = document.getElementById("options");
+  options.innerHTML = "";
+  q.options.forEach((text, i) => {
+    const btn = document.createElement("button");
+    btn.className = "option";
+    btn.textContent = `${String.fromCharCode(65+i)}. ${text}`;
+    if (answers[current] === i) btn.classList.add("selected");
+    if (graded[current]) {
+      btn.disabled = true;
+      if (i === q.answer) btn.classList.add("correct");
+      if (i === answers[current] && i !== q.answer) btn.classList.add("wrong");
+    }
+    btn.onclick = () => {
+      if (graded[current]) return;
+      answers[current] = i;
+      render();
+    };
+    options.appendChild(btn);
+  });
+
+  const feedback = document.getElementById("feedback");
+  feedback.className = "feedback";
+  feedback.innerHTML = "";
+  if (graded[current]) {
+    const ok = answers[current] === q.answer;
+    feedback.className = "feedback " + (ok ? "ok" : "bad");
+    feedback.innerHTML = `<strong>${ok ? "✓ Correto!" : "✗ Resposta incorreta."}</strong><br>${q.explanation}`;
+  }
+
+  document.getElementById("backBtn").disabled = current === 0;
+  document.getElementById("answerBtn").style.display = graded[current] ? "none" : "inline-block";
+  document.getElementById("nextBtn").style.display = graded[current] ? "inline-block" : "none";
+  document.getElementById("nextBtn").textContent = current === questions.length - 1 ? "Ver resultado →" : "Próxima →";
+}
+
+function submitAnswer() {
+  if (answers[current] === null) {
+    const feedback = document.getElementById("feedback");
+    feedback.className = "feedback bad";
+    feedback.innerHTML = "<strong>Escolha uma alternativa antes de responder.</strong>";
+    return;
+  }
+  if (!graded[current]) {
+    graded[current] = true;
+    if (answers[current] === questions[current].answer) score++;
+    else errors++;
+  }
+  render();
+}
+
+function goNext() {
+  if (!graded[current]) return;
+  if (current === questions.length - 1) {
+    showResult();
+    return;
+  }
+  current++;
+  render();
+  window.scrollTo({top: 0, behavior: "smooth"});
+}
+
+function goBack() {
+  if (current > 0) {
+    current--;
+    render();
+  }
+}
+
+function updateStats() {
+  document.getElementById("correct").textContent = score;
+  document.getElementById("wrong").textContent = errors;
+  const done = score + errors;
+  const pct = done ? Math.round(score / done * 100) : 0;
+  document.getElementById("percent").textContent = pct + "%";
+}
+
+function showResult() {
+  document.getElementById("quizCard").style.display = "none";
+  const result = document.getElementById("result");
+  result.style.display = "block";
+  const pct = Math.round(score / questions.length * 100);
+  document.getElementById("finalScore").textContent = `${score}/40 (${pct}%)`;
+  let msg = "Boa rodada. Revise os pontos errados e tente novamente.";
+  if (pct >= 90) msg = "Excelente domínio do conteúdo. Agora vale repetir embaralhado para testar retenção.";
+  else if (pct >= 75) msg = "Muito bom. Você já domina a maior parte; foque nas bases de cálculo e nas diferenças entre itens.";
+  else if (pct >= 60) msg = "Bom começo. Revise especialmente os itens marcados como Alterar e Retirar.";
+  document.getElementById("finalMessage").textContent = msg;
+
+  const mistakes = document.getElementById("mistakes");
+  mistakes.innerHTML = "";
+  const wrongItems = questions.map((q,i) => ({q,i})).filter(x => graded[x.i] && answers[x.i] !== x.q.answer);
+  if (wrongItems.length) {
+    const title = document.createElement("h3");
+    title.textContent = "Revisão dos erros";
+    mistakes.appendChild(title);
+    wrongItems.forEach(({q,i}) => {
+      const box = document.createElement("div");
+      box.className = "mistake";
+      box.innerHTML = `<strong>${q.reference} — ${q.question}</strong>
+        <div class="small">Resposta correta: ${q.options[q.answer]}</div>
+        <div class="small">${q.explanation}</div>`;
+      mistakes.appendChild(box);
+    });
+  } else {
+    const box = document.createElement("div");
+    box.className = "mistake";
+    box.textContent = "Nenhum erro — 40/40.";
+    mistakes.appendChild(box);
+  }
+  window.scrollTo({top: 0, behavior: "smooth"});
+}
+
+function restartQuiz() {
+  current = 0;
+  answers = Array(questions.length).fill(null);
+  graded = Array(questions.length).fill(false);
+  score = 0;
+  errors = 0;
+  document.getElementById("quizCard").style.display = "block";
+  document.getElementById("result").style.display = "none";
+  render();
+}
+
+function shuffleQuiz() {
+  for (let i = questions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [questions[i], questions[j]] = [questions[j], questions[i]];
+  }
+  restartQuiz();
+}
+
+render();
+</script>
+</body>
+</html>
