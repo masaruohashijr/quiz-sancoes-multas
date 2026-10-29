@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chamados ALSD</title>
+<title>Chamados ALSD - 1.0</title>
 <style>
 :root{--color-fg:#1f1e1c;--color-fg-muted:#6b6862;--color-bg:#faf9f6;--color-panel:#ffffff;--color-border-line:#e6e3dc;--color-ok:#2f7d4f;--color-warn:#a86412;--color-bad:#c0392b;
 --c0:#3b6fd9;--c1:#d97b3b;--c2:#c0392b;--cds-chart-muted:#b5b1a8;
@@ -96,7 +96,7 @@ let _rt; window.addEventListener('resize', () => { clearTimeout(_rt); _rt = setT
   <section id="meses">
     <h1>Chamados por mês</h1>
     <p class="note">Clique na chave para abrir o chamado no Jira.</p>
-    <div class="toolbar"><label class="cred-label">E-mail Jira <input id="jira-email" type="email" autocomplete="username" placeholder="E-mail Atlassian"></label><label class="cred-label">Token API <input id="jira-token" type="password" autocomplete="off" placeholder="Token (não é salvo)"></label><button id="refresh-jira" type="button" class="refresh">Atualizar</button><span id="refresh-msg" class="refresh-msg" role="status" aria-live="polite"></span></div>
+    <div class="toolbar"><label class="cred-label">E-mail Jira <input id="jira-email" type="email" autocomplete="username" placeholder="E-mail Atlassian"></label><label class="cred-label">Token API <input id="jira-token" type="password" autocomplete="off" placeholder="Token (não é salvo)"></label><button id="refresh-jira" type="button" class="refresh">Atualizar Chamados</button><span id="refresh-msg" class="refresh-msg" role="status" aria-live="polite"></span></div>
     <p class="note">As credenciais ficam apenas na memória desta aba. A consulta direta pode ser bloqueada pelo CORS da Atlassian; nesse caso, é necessário um serviço intermediário. Não publique um arquivo com token embutido.</p>
     <div class="months" id="months"></div>
   </section>
